@@ -325,6 +325,7 @@ export default function MapTab({ selectedLat, selectedLng, onGoToTable }: MapTab
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
