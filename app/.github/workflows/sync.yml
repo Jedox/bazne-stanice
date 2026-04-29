@@ -1,0 +1,40 @@
+name: RATEL Data Sync
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # Svaka 3 sata
+  workflow_dispatch:      # Omogućava ručno pokretanje iz GitHub-a
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    # Dozvole za upisivanje nazad u repozitorijum
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Sync Script
+        run: npx tsx scripts/sync.ts
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED: 0
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action (RATEL Sync)"
+          git config --global user.email "actions@github.com"
+          git add data/
+          git commit -m "chore: auto-sync RATEL data [$(date)]" || exit 0
+          git push
