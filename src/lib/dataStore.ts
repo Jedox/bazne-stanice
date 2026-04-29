@@ -7,10 +7,7 @@
  *  3. Handles re-loading when the CSV is replaced by the sync endpoint
  */
 
-import fs from 'fs';
-import path from 'path';
-import { createHash } from 'crypto';
-import type { BaseStation, SyncMeta, StationFilters, StatsResponse } from './types';
+import Papa from 'papaparse';
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
@@ -35,54 +32,27 @@ function fileHash(filepath: string): string {
   }
 }
 
-/** Parse a single TSV line respecting quoted fields */
-function parseLine(line: string): string[] {
-  const fields: string[] = [];
-  let current = '';
-  let inQuote = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuote && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuote = !inQuote;
-      }
-    } else if (ch === '\t' && !inQuote) {
-      fields.push(current.trim());
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  fields.push(current.trim());
-  return fields;
-}
-
 function parseCSV(csvText: string): BaseStation[] {
-  const lines = csvText.split('\n').map(l => l.replace(/\r$/, ''));
+  const results = Papa.parse(csvText, {
+    delimiter: "\t",
+    skipEmptyLines: true,
+    header: false,
+  });
+
+  const lines = results.data as string[][];
   if (lines.length < 2) return [];
 
-  // Skip header row (index 0)
   const records: BaseStation[] = [];
-
+  // Skip header
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line.trim()) continue;
-
-    const fields = parseLine(line);
+    const fields = lines[i];
     if (fields.length < 9) continue;
 
     const [id, operator, freqBand, tech, zip, locationName, address, lngStr, latStr] = fields;
-
     const lng = parseFloat(lngStr);
     const lat = parseFloat(latStr);
 
-    // Skip records with invalid coordinates
     if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) continue;
-    // Basic Serbia coordinate check (roughly)
     if (lat < 41 || lat > 47 || lng < 18 || lng > 23) continue;
 
     records.push({
@@ -104,20 +74,24 @@ function parseCSV(csvText: string): BaseStation[] {
 // ─── Load / reload ────────────────────────────────────────────────────────────
 
 function loadData(): void {
+  // CRITICAL: Skip loading during Next.js build to save memory
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return;
+  }
+
   if (!fs.existsSync(CSV_PATH)) {
     console.warn('[dataStore] CSV not found at', CSV_PATH);
     return;
   }
 
   const hash = fileHash(CSV_PATH);
-  if (cacheLoaded && hash === cachedHash) return; // nothing changed
+  if (cacheLoaded && hash === cachedHash) return;
 
   console.log('[dataStore] (Re)loading CSV …');
   const start = Date.now();
   const buf = fs.readFileSync(CSV_PATH);
   
   let text = '';
-  // Check for UTF-16LE BOM
   if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) {
     text = buf.toString('utf16le');
   } else {
@@ -125,7 +99,7 @@ function loadData(): void {
   }
 
   cachedRecords = parseCSV(text);
-  text = ""; // Clear large string buffer
+  text = ""; // Free memory immediately
   cachedHash = hash;
   cacheLoaded = true;
   console.log(`[dataStore] Loaded ${cachedRecords.length} records in ${Date.now() - start}ms`);
