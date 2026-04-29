@@ -65,7 +65,13 @@ async function sync() {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   try {
-    const res = await fetch(SOURCE_URL);
+    const res = await fetch(SOURCE_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/csv,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br'
+      }
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
     const arrayBuffer = await res.arrayBuffer();

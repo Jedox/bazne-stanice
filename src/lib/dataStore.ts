@@ -125,6 +125,7 @@ function loadData(): void {
   }
 
   cachedRecords = parseCSV(text);
+  text = ""; // Clear large string buffer
   cachedHash = hash;
   cacheLoaded = true;
   console.log(`[dataStore] Loaded ${cachedRecords.length} records in ${Date.now() - start}ms`);
