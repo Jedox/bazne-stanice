@@ -7,7 +7,11 @@
  *  3. Handles re-loading when the CSV is replaced by the sync endpoint
  */
 
+import fs from 'fs';
+import path from 'path';
+import { createHash } from 'crypto';
 import Papa from 'papaparse';
+import type { BaseStation, SyncMeta, StationFilters, StatsResponse } from './types';
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
