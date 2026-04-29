@@ -108,14 +108,19 @@ export default function MapClient({ points, selectedLat, selectedLng, onSelectSi
         bgStyle = `background: conic-gradient(${getOpColor(site.operators[0])} 0% 33%, ${getOpColor(site.operators[1])} 33% 66%, ${getOpColor(site.operators[2])} 66% 100%);`;
       }
 
-      const color = getOpColor(site.operators[0]);
-      const glowStyle = `box-shadow: 0 0 10px ${color}80, 0 2px 4px rgba(0,0,0,0.5);`;
+      const lower = site.operators[0].toLowerCase();
+      let glowClass = 'glow-multi';
+      if (site.operators.length === 1) {
+        if (lower.includes('telekom')) glowClass = 'glow-telekom';
+        else if (lower.includes('yettel')) glowClass = 'glow-yettel';
+        else if (lower.includes('a1')) glowClass = 'glow-a1';
+      }
 
       const has5G = site.technologies.includes('5G');
       const badge5G = has5G ? `<div style="position: absolute; top: -5px; right: -5px; background: #a855f7; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 12px #a855f7;"></div>` : '';
 
       return L.divIcon({
-        html: `<div style="position: relative; width: 14px; height: 14px; ${bgStyle} border: 1.5px solid rgba(255,255,255,0.9); border-radius: 50%; ${glowStyle} display: flex; align-items: center; justify-content: center;">
+        html: `<div class="site-marker-glow ${glowClass}" style="position: relative; width: 14px; height: 14px; ${bgStyle} border: 1.5px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center;">
                  ${badge5G}
                </div>`,
         className: 'custom-div-icon-site',
@@ -155,5 +160,58 @@ export default function MapClient({ points, selectedLat, selectedLng, onSelectSi
     }
   }, [selectedLat, selectedLng]);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
+  return (
+    <>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+      <style jsx global>{`
+        /* Individual Site Markers Glow */
+        .site-marker-glow {
+          border-radius: 50%;
+          transition: transform 0.2s ease-out;
+        }
+        .site-marker-glow:hover {
+          transform: scale(1.3);
+          z-index: 1000 !important;
+        }
+
+        /* Operator Specific Glows */
+        .glow-telekom { box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 2px 4px rgba(0,0,0,0.5); }
+        .glow-yettel { box-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 2px 4px rgba(0,0,0,0.5); }
+        .glow-a1 { box-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 2px 4px rgba(0,0,0,0.5); }
+        .glow-multi { box-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0,0,0,0.5); }
+
+        /* Cluster Pulse Animation */
+        @keyframes cluster-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .marker-cluster {
+          background-clip: padding-box;
+          border-radius: 20px;
+          animation: cluster-pulse 2s infinite;
+        }
+        .marker-cluster div {
+          width: 30px;
+          height: 30px;
+          margin-left: 5px;
+          margin-top: 5px;
+          text-align: center;
+          border-radius: 15px;
+          font-size: 12px;
+          font-weight: 700;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(4px);
+        }
+
+        .marker-cluster-small { background-color: rgba(59, 130, 246, 0.6); }
+        .marker-cluster-medium { background-color: rgba(168, 85, 247, 0.6); }
+        .marker-cluster-large { background-color: rgba(239, 68, 68, 0.6); }
+      `}</style>
+    </>
+  );
 }
