@@ -108,11 +108,14 @@ export default function MapClient({ points, selectedLat, selectedLng, onSelectSi
         bgStyle = `background: conic-gradient(${getOpColor(site.operators[0])} 0% 33%, ${getOpColor(site.operators[1])} 33% 66%, ${getOpColor(site.operators[2])} 66% 100%);`;
       }
 
+      const color = getOpColor(site.operators[0]);
+      const glowStyle = `box-shadow: 0 0 10px ${color}80, 0 2px 4px rgba(0,0,0,0.5);`;
+
       const has5G = site.technologies.includes('5G');
-      const badge5G = has5G ? `<div style="position: absolute; top: -4px; right: -4px; background: #a855f7; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 4px #a855f7;"></div>` : '';
+      const badge5G = has5G ? `<div style="position: absolute; top: -5px; right: -5px; background: #a855f7; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 12px #a855f7;"></div>` : '';
 
       return L.divIcon({
-        html: `<div style="position: relative; width: 14px; height: 14px; ${bgStyle} border: 1.5px solid rgba(255,255,255,0.9); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+        html: `<div style="position: relative; width: 14px; height: 14px; ${bgStyle} border: 1.5px solid rgba(255,255,255,0.9); border-radius: 50%; ${glowStyle} display: flex; align-items: center; justify-content: center;">
                  ${badge5G}
                </div>`,
         className: 'custom-div-icon-site',
