@@ -81,15 +81,17 @@ function loadData(): void {
   // Prevent loading during Vercel build to avoid memory limits
   if (process.env.NEXT_PHASE === 'phase-production-build') return;
 
-  if (!fs.existsSync(CSV_PATH)) return;
+  if (!fs.existsSync(CSV_PATH)) {
+    console.warn('[dataStore] CSV path not found:', CSV_PATH);
+    return;
+  }
 
   const hash = fileHash(CSV_PATH);
   if (cacheLoaded && hash === cachedHash) return;
 
-  console.log('[dataStore] Streaming CSV load …');
+  console.log('[dataStore] (Re)loading CSV …');
   const start = Date.now();
   
-  // Use a faster sync read for simplicity but clear the buffer
   const buf = fs.readFileSync(CSV_PATH);
   let text = '';
   if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) {
@@ -98,35 +100,40 @@ function loadData(): void {
     text = buf.toString('utf8');
   }
 
-  // Use Papaparse with high speed settings
+  // Use Papaparse with safer settings
   const results = Papa.parse(text, {
     delimiter: "\t",
     skipEmptyLines: true,
-    fastMode: true, // Crucial for speed
+    header: false
   });
 
-  text = ""; // Immediate cleanup
+  text = ""; // Cleanup immediately
 
   const rows = results.data as string[][];
+  console.log(`[dataStore] Parsed ${rows.length} rows from CSV`);
+
   const records: BaseStation[] = [];
 
   for (let i = 1; i < rows.length; i++) {
     const fields = rows[i];
     if (fields.length < 9) continue;
 
-    const lat = parseFloat(fields[8]);
-    const lng = parseFloat(fields[7]);
+    const [id, operator, freqBand, tech, zip, locationName, address, lngStr, latStr] = fields;
+    
+    // Clean and parse coordinates
+    const lng = parseFloat(lngStr?.replace(',', '.').trim());
+    const lat = parseFloat(latStr?.replace(',', '.').trim());
 
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
     records.push({
-      id: fields[0] || `r-${i}`,
-      operator: fields[1] || 'Unknown',
-      frequencyBand: fields[2] || '',
-      technology: fields[3] || '',
-      zipCode: fields[4] || '',
-      locationName: fields[5] || '',
-      address: fields[6] || '',
+      id: id || `r-${i}`,
+      operator: operator || 'Unknown',
+      frequencyBand: freqBand || '',
+      technology: tech || '',
+      zipCode: zip || '',
+      locationName: locationName || '',
+      address: address || '',
       longitude: lng,
       latitude: lat,
     });
@@ -135,7 +142,7 @@ function loadData(): void {
   cachedRecords = records;
   cachedHash = hash;
   cacheLoaded = true;
-  console.log(`[dataStore] Loaded ${cachedRecords.length} records in ${Date.now() - start}ms`);
+  console.log(`[dataStore] Successfully loaded ${cachedRecords.length} records in ${Date.now() - start}ms`);
 }
 
 export function ensureLoaded(): void {
