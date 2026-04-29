@@ -92,22 +92,6 @@ export default function Header({ totalSites, lastSyncAt, onSync, syncing }: Head
                 </span>
               </div>
             )}
-
-            <button
-              className="btn-ghost"
-              onClick={onSync}
-              disabled={syncing}
-              style={{ padding: '7px 12px' }}
-            >
-              <RefreshCw
-                size={13}
-                style={{
-                  color: syncing ? 'var(--accent)' : undefined,
-                  animation: syncing ? 'spin 1s linear infinite' : undefined,
-                }}
-              />
-              {syncing ? 'Sinhronizuje…' : 'Sinhronizuj'}
-            </button>
           </div>
         </div>
       </div>

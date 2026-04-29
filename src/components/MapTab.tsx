@@ -105,82 +105,99 @@ export default function MapTab({ selectedLat, selectedLng, onGoToTable }: MapTab
       width: '100%',
       background: 'var(--bg-base)',
       display: 'flex',
+      flexDirection: 'column',
     }}>
-      {/* ─── Map Layer ─────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        <MapClient
-          points={points}
-          selectedLat={selectedLat}
-          selectedLng={selectedLng}
-          onSelectSite={setSelectedSite}
-        />
-
-        {/* ─── Floating Controls ────────────────────────────────────────── */}
-        <div style={{
-          position: 'absolute', top: 20, left: 20, zIndex: 400,
-          display: 'flex', flexDirection: 'column', gap: 10,
+      {/* ─── Top Filter Bar ────────────────────────────────────────────── */}
+      {!isFullscreen && (
+        <div className="glass" style={{
+          padding: '12px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 24,
+          borderBottom: '1px solid var(--border)',
+          background: 'rgba(13, 19, 32, 0.8)',
+          zIndex: 401,
         }}>
-          {/* Main toolbar / Filters */}
-          <div className="glass" style={{
-            padding: '10px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 16,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Filter size={16} color="var(--text-secondary)" />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Filteri</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Filter size={16} color="var(--accent)" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Filteri Mape
+            </span>
+          </div>
 
-            <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>OPERATER</label>
+            <select 
+              className="form-input" 
+              style={{ width: 160, padding: '6px 12px', fontSize: 13, borderRadius: 8 }} 
+              value={operator} 
+              onChange={e => setOperator(e.target.value)}
+            >
+              <option value="">Svi operateri</option>
+              <option value="Telekom Srbija">Telekom Srbija</option>
+              <option value="Yettel">Yettel</option>
+              <option value="A1">A1</option>
+            </select>
+          </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Operater:</label>
-              <select className="form-input" style={{ width: 140, padding: '6px 10px', fontSize: 13 }} value={operator} onChange={e => setOperator(e.target.value)}>
-                <option value="">Svi</option>
-                <option value="Telekom Srbija">Telekom Srbija</option>
-                <option value="Yettel">Yettel</option>
-                <option value="A1">A1</option>
-              </select>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>TEHNOLOGIJA</label>
+            <select 
+              className="form-input" 
+              style={{ width: 140, padding: '6px 12px', fontSize: 13, borderRadius: 8 }} 
+              value={technology} 
+              onChange={e => setTechnology(e.target.value)}
+            >
+              <option value="">Sve tehnologije</option>
+              <option value="5G">5G</option>
+              <option value="4G">4G</option>
+              <option value="3G">3G</option>
+              <option value="2G">2G</option>
+            </select>
+          </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tehnologija:</label>
-              <select className="form-input" style={{ width: 140, padding: '6px 10px', fontSize: 13 }} value={technology} onChange={e => setTechnology(e.target.value)}>
-                <option value="">Sve</option>
-                <option value="5G">5G</option>
-                <option value="4G">4G</option>
-                <option value="3G">3G</option>
-                <option value="2G">2G</option>
-              </select>
-            </div>
+          {(operator || technology) && (
+            <button 
+              className="btn-ghost" 
+              style={{ padding: '6px 12px', fontSize: 12, color: '#ef4444' }} 
+              onClick={() => { setOperator(''); setTechnology(''); }}
+            >
+              <X size={14} style={{ marginRight: 4 }} /> Obriši
+            </button>
+          )}
 
-            {(operator || technology) && (
-              <button className="btn-ghost" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => { setOperator(''); setTechnology(''); }}>
-                Obriši
-              </button>
-            )}
-
-            <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
-
-            <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600, minWidth: 100 }}>
-              {loading ? 'Učitavanje...' : `${points.length.toLocaleString('sr')} lokacija`}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {loading ? 'Učitavanje...' : <b>{points.length.toLocaleString('sr')}</b>} lokacija
             </span>
           </div>
         </div>
+      )}
 
-        {/* Fullscreen button */}
-        <button
-          className="glass"
-          onClick={toggleFullscreen}
-          style={{
-            position: 'absolute', top: 20, right: 20, zIndex: 400,
-            width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-primary)', border: '1px solid var(--border)', cursor: 'pointer',
-          }}
-          title="Preko celog ekrana"
-        >
-          {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-        </button>
-      </div>
+      <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
+        {/* ─── Map Layer ─────────────────────────────────────────────────── */}
+        <div style={{ flex: 1, position: 'relative' }}>
+          <MapClient
+            points={points}
+            selectedLat={selectedLat}
+            selectedLng={selectedLng}
+            onSelectSite={setSelectedSite}
+          />
+
+          {/* Fullscreen button */}
+          <button
+            className="glass"
+            onClick={toggleFullscreen}
+            style={{
+              position: 'absolute', top: 20, right: 20, zIndex: 400,
+              width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-primary)', border: '1px solid var(--border)', cursor: 'pointer',
+            }}
+            title="Preko celog ekrana"
+          >
+            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+        </div>
 
       {/* ─── Detail Sidebar ────────────────────────────────────────────── */}
       <AnimatePresence>
