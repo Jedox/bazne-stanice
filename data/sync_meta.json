@@ -1,10 +1,17 @@
 {
-  "lastCheckedAt": "2026-05-20T20:03:48.633Z",
-  "lastChangedAt": "2026-04-29T20:28:17.114Z",
-  "totalRecords": 138162,
+  "lastCheckedAt": "2026-05-20T22:20:09.024Z",
+  "lastChangedAt": "2026-05-20T22:20:09.024Z",
+  "totalRecords": 0,
   "inserted": 0,
-  "updated": 0,
-  "deleted": 0,
-  "fileHash": "93cdcac72e457035",
-  "operatorChanges": []
+  "deleted": 138162,
+  "fileHash": "4f43c9d57f7c3de7",
+  "operatorChanges": [],
+  "globalStats": {
+    "newSites": 0,
+    "new5G700": 0,
+    "new5G3500": 0,
+    "new4G2600": 0,
+    "new4G700": 0,
+    "updated4GSites": 0
+  }
 }
